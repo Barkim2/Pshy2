@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; transition: background 0.5s; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .cell { padding: 30px; border: 1px solid #777; cursor: pointer; font-size: 24px; text-align: center; }
+    </style>
+</head>
+<body id="mainBody">
+    <div id="screen">
+        <h1>ניסוי זמן תגובה</h1>
+        <button onclick="startExperiment()">התחל</button>
+    </div>
+
+    <form id="resultForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" style="display:none;">
+        <input type="hidden" name="results" id="resultsInput">
+    </form>
+
+    <script>
+        let results = [];
+        let currentMode = 0; 
+        let startTime, target;
+
+        function startExperiment() { runTrial(); }
+
+        function runTrial() {
+            if (currentMode > 1) {
+                document.getElementById('resultsInput').value = JSON.stringify(results);
+                document.getElementById('screen').innerHTML = "<h1>תודה! הנתונים נשלחו.</h1>";
+                document.getElementById('resultForm').submit();
+                return;
+            }
+            const color = (currentMode === 0) ? 'black' : 'white';
+            document.body.style.backgroundColor = color;
+            document.body.style.color = (currentMode === 0) ? 'white' : 'black';
+            target = Math.floor(100 + Math.random() * 900);
+            document.getElementById('screen').innerHTML = `<h1>מצא את: ${target}</h1><button onclick="showGrid('${color}')">המשך</button>`;
+        }
+
+        function showGrid(color) {
+            startTime = performance.now();
+            let html = '<div class="grid">';
+            for(let i=0; i<16; i++) {
+                let val = (i === 7) ? target : Math.floor(100 + Math.random() * 900);
+                html += `<div class="cell" onclick="finish(${val}, '${color}')">${val}</div>`;
+            }
+            document.getElementById('screen').innerHTML = html + '</div>';
+        }
+
+        function finish(val, color) {
+            if (val === target) {
+                results.push({ mode: color, rt: (performance.now() - startTime).toFixed(2) });
+                currentMode++;
+                runTrial();
+            }
+        }
+    </script>
+</body>
+</html>
