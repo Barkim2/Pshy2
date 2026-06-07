@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,6 +67,85 @@
             }).then(() => {
                 document.getElementById('screen').innerHTML = "<h1>תודה! הנתונים נשלחו.</h1>";
             });
+        }
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; transition: background 0.5s; overflow: hidden; }
+        #screen { text-align: center; width: 95%; max-width: 600px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 20px; }
+        .cell { padding: 12px 2px; border: 1px solid #777; cursor: pointer; font-size: 16px; text-align: center; border-radius: 4px; }
+    </style>
+</head>
+<body id="mainBody">
+    <div id="screen">
+        <h1>ניסוי חיפוש חזותי</h1>
+        <input type="number" id="age" placeholder="גיל" style="width:80%; padding:10px;">
+        <select id="gender" style="width:80%; padding:10px; margin-top:5px;"><option value="זכר">זכר</option><option value="נקבה">נקבה</option></select>
+        <button onclick="startExperiment()" style="padding: 15px 30px; font-size: 18px; margin-top: 20px;">התחל</button>
+    </div>
+
+    <script>
+        let results = [], currentRound = 0, startTime, target, errors = 0;
+        let userData = {};
+        const totalRounds = 4; // סה"כ 4 סבבים
+
+        function startExperiment() {
+            userData = { age: document.getElementById('age').value, gender: document.getElementById('gender').value };
+            runTrial();
+        }
+
+        function runTrial() {
+            if (currentRound >= totalRounds) { sendResults(); return; }
+            errors = 0;
+            const isBlack = currentRound % 2 === 0; // לסירוגין שחור/לבן
+            const color = isBlack ? 'black' : 'white';
+            document.body.style.backgroundColor = color;
+            document.body.style.color = isBlack ? 'white' : 'black';
+            
+            // יצירת מספר 4 ספרות
+            target = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('screen').innerHTML = `<h1>מצא את: ${target}</h1><button onclick="showGrid('${color}')">התחל חיפוש</button>`;
+        }
+
+        function showGrid(color) {
+            startTime = performance.now();
+            let html = '<div class="grid">';
+            // יצירת 25 תאים עם מספרים דומים
+            let cells = Array.from({length: 25}, () => Math.floor(target/10)*10 + Math.floor(Math.random()*10));
+            let targetIndex = Math.floor(Math.random() * 25);
+            cells[targetIndex] = target;
+
+            for(let i=0; i<25; i++) {
+                html += `<div class="cell" onclick="finish(${cells[i]}, '${color}')">${cells[i]}</div>`;
+            }
+            document.getElementById('screen').innerHTML = html + '</div>';
+        }
+
+        function finish(val, color) {
+            if (val === target) {
+                results.push({ round: currentRound + 1, mode: color, rt: (performance.now() - startTime).toFixed(2), errors: errors });
+                currentRound++;
+                runTrial();
+            } else {
+                errors++;
+                alert("טעות!");
+            }
+        }
+
+        function sendResults() {
+            fetch('https://formspree.io/f/xzdqeoyv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userData, results })
+            }).then(() => { document.getElementById('screen').innerHTML = "<h1>תודה! הנתונים נשלחו.</h1>"; });
         }
     </script>
 </body>
