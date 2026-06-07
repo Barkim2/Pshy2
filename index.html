@@ -72,8 +72,8 @@
 </body>
 </html> -->
 
-
-<!DOCTYPE html>
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+<!-- <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -124,6 +124,90 @@
             cells[targetIndex] = target;
 
             for(let i=0; i<25; i++) {
+                html += `<div class="cell" onclick="finish(${cells[i]}, '${color}')">${cells[i]}</div>`;
+            }
+            document.getElementById('screen').innerHTML = html + '</div>';
+        }
+
+        function finish(val, color) {
+            if (val === target) {
+                results.push({ round: currentRound + 1, mode: color, rt: (performance.now() - startTime).toFixed(2), errors: errors });
+                currentRound++;
+                runTrial();
+            } else {
+                errors++;
+                alert("טעות!");
+            }
+        }
+
+        function sendResults() {
+            fetch('https://formspree.io/f/xzdqeoyv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userData, results })
+            }).then(() => { document.getElementById('screen').innerHTML = "<h1>תודה! הנתונים נשלחו.</h1>"; });
+        }
+    </script>
+</body>
+</html> -->
+// ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+
+
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; transition: background 0.5s; overflow: hidden; }
+        #screen { text-align: center; width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* טבלה גדולה 5x8 */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 95%; margin-top: 10px; }
+        .cell { padding: 10px 2px; border: 1px solid #777; cursor: pointer; font-size: 14px; text-align: center; border-radius: 3px; }
+    </style>
+</head>
+<body id="mainBody">
+    <div id="screen">
+        <h1>ניסוי חיפוש חזותי</h1>
+        <input type="number" id="age" placeholder="גיל" style="width:70%; padding:10px; margin-bottom:10px;">
+        <select id="gender" style="width:70%; padding:10px;"><option value="זכר">זכר</option><option value="נקבה">נקבה</option></select>
+        <button onclick="startExperiment()" style="padding: 15px 30px; font-size: 18px; margin-top: 20px;">התחל ניסוי</button>
+    </div>
+
+    <script>
+        let results = [], currentRound = 0, startTime, target, errors = 0;
+        let userData = {};
+        const totalRounds = 4;
+
+        function startExperiment() {
+            userData = { age: document.getElementById('age').value, gender: document.getElementById('gender').value };
+            runTrial();
+        }
+
+        function runTrial() {
+            if (currentRound >= totalRounds) { sendResults(); return; }
+            errors = 0;
+            const isBlack = currentRound % 2 === 0;
+            document.body.style.backgroundColor = isBlack ? 'black' : 'white';
+            document.body.style.color = isBlack ? 'white' : 'black';
+            
+            target = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('screen').innerHTML = `<h1>מצא את: ${target}</h1><button onclick="showGrid('${isBlack ? 'black' : 'white'}')">התחל חיפוש</button>`;
+        }
+
+        function showGrid(color) {
+            startTime = performance.now();
+            // יצירת קבוצה של מספרים ייחודיים
+            let numSet = new Set();
+            while(numSet.size < 40) numSet.add(Math.floor(1000 + Math.random() * 9000));
+            let cells = Array.from(numSet);
+            
+            // החלפת תא אחד ב-Target
+            let targetIndex = Math.floor(Math.random() * 40);
+            cells[targetIndex] = target;
+
+            let html = '<div class="grid">';
+            for(let i=0; i<40; i++) {
                 html += `<div class="cell" onclick="finish(${cells[i]}, '${color}')">${cells[i]}</div>`;
             }
             document.getElementById('screen').innerHTML = html + '</div>';
