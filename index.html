@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; transition: background 0.5s; overflow: hidden; }
+        #screen { text-align: center; width: 90%; }
+        /* טבלה רספונסיבית: 6 עמודות */
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 20px; }
+        .cell { padding: 15px 5px; border: 1px solid #777; cursor: pointer; font-size: 18px; text-align: center; }
+    </style>
+</head>
+<body id="mainBody">
+    <div id="screen">
+        <h1>ניסוי זמן תגובה</h1>
+        <button onclick="startExperiment()" style="padding: 15px 30px; font-size: 18px;">התחל</button>
+    </div>
+
+    <script>
+        let results = [];
+        let currentMode = 0; 
+        let startTime, target;
+
+        function startExperiment() { runTrial(); }
+
+        function runTrial() {
+            if (currentMode > 1) {
+                sendResults();
+                return;
+            }
+            const color = (currentMode === 0) ? 'black' : 'white';
+            document.body.style.backgroundColor = color;
+            document.body.style.color = (currentMode === 0) ? 'white' : 'black';
+            target = Math.floor(100 + Math.random() * 900);
+            document.getElementById('screen').innerHTML = `<h1>מצא את: ${target}</h1><button onclick="showGrid('${color}')">המשך</button>`;
+        }
+
+        function showGrid(color) {
+            startTime = performance.now();
+            let html = '<div class="grid">';
+            // יצירת 18 תאים (6 על 3)
+            let cells = Array.from({length: 18}, () => Math.floor(100 + Math.random() * 900));
+            // מיקום רנדומלי למספר המטרה
+            let targetIndex = Math.floor(Math.random() * 18);
+            cells[targetIndex] = target;
+
+            for(let i=0; i<18; i++) {
+                html += `<div class="cell" onclick="finish(${cells[i]}, '${color}')">${cells[i]}</div>`;
+            }
+            document.getElementById('screen').innerHTML = html + '</div>';
+        }
+
+        function finish(val, color) {
+            if (val === target) {
+                results.push({ mode: color, rt: (performance.now() - startTime).toFixed(2) });
+                currentMode++;
+                runTrial();
+            }
+        }
+
+        function sendResults() {
+            document.getElementById('screen').innerHTML = "<h1>שולח נתונים, אנא המתן...</h1>";
+            fetch('https://formspree.io/f/xzdqeoyv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ results: JSON.stringify(results) })
+            }).then(() => {
+                document.getElementById('screen').innerHTML = "<h1>תודה! הנתונים נשלחו.</h1>";
+            });
+        }
+    </script>
+</body>
+</html>
